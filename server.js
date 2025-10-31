@@ -25,7 +25,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 */
-app.use((req, res, next) => {
+/*app.use((req, res, next) => {
     const origin = req.headers.origin?.replace(/^http?:\/\//, '');
 
     if(!origin) {
@@ -61,8 +61,26 @@ app.use((req, res, next) => {
 
     return res.status(403).send("Acesso Negado");
 })
+*/
 
+const corsOptionsDelegate = (req, callback) => {
+    const origin = req.header('origin');
+    const userAgent = req.header('user-agent');
 
+    const isBrowser = userAgent && (
+        userAgent.includes("Mozilla") ||
+        userAgent.includes("Chrome") ||
+        userAgente.includes("Safari")
+    );
+
+    if (!isBrowser && origin) {
+        console.warn(`[CORS BLOQUEADO] Origem: ${origin} | UA: ${userAgent}`);
+    }
+    console.log(`Origem: ${origin} | UA: ${userAgent}`);
+    callback(null, {origin: isBrowser || !origin});
+}
+
+app.use(cors(corsOptionsDelegate));
 
 const ARQUIVO_DADOS = path.join(__dirname, 'dados.json');
 
@@ -91,6 +109,8 @@ app.get('/mensagens', async (req, res) => {
         res.send(500).send('error ao ler dados');
     }
 });
+
+app.use(express.json());
 
 app.post('/salvar-dados', express.json(), body('container-mensagens').escape(), async (req, res) => {
     const erros = validationResult(req);
